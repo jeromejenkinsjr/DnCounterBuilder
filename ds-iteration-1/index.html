@@ -1,183 +1,226 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D&D 5e Encounter Builder</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-dragon"></i> D&D 5e Encounter Builder</h1>
-            <p class="subtitle">Iteration 1: Plausible Encounter Generator</p>
-        </header>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>D&D 5e Encounter Builder</title>
+		<link rel="stylesheet" href="styles.css" />
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;500&display=swap"
+			rel="stylesheet"
+		/>
+	</head>
+	<body>
+		<div class="container">
+			<header>
+				<h1><i class="fas fa-dragon"></i> D&D 5e Encounter Builder</h1>
+				<p class="subtitle">Iteration 1: Plausible Encounter Generator</p>
+			</header>
 
-        <main>
-            <section class="controls-section">
-                <div class="controls-card">
-                    <h2><i class="fas fa-sliders-h"></i> Encounter Parameters</h2>
-                    <div class="controls-grid">
-                        <div class="control-group">
-                            <label for="party-level">
-                                <i class="fas fa-user-alt"></i> Party Level
-                            </label>
-                            <div class="input-with-info">
-                                <input type="number" id="party-level" min="1" max="10" value="3">
-                                <span class="info-tooltip">Level 1-10</span>
-                            </div>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="party-size">
-                                <i class="fas fa-users"></i> Party Size
-                            </label>
-                            <div class="input-with-info">
-                                <input type="number" id="party-size" min="1" max="6" value="4">
-                                <span class="info-tooltip">1-6 adventurers</span>
-                            </div>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="theme">
-                                <i class="fas fa-palette"></i> Monster Theme
-                            </label>
-                            <select id="theme">
-                                <option value="any">Any</option>
-                                <option value="beast">Beast</option>
-                                <option value="undead">Undead</option>
-                                <option value="humanoid">Humanoid</option>
-                                <option value="dragon">Dragon</option>
-                                <option value="fiend">Fiend</option>
-                                <option value="monstrosity">Monstrosity</option>
-                                <option value="aberration">Aberration</option>
-                                <option value="construct">Construct</option>
-                                <option value="elemental">Elemental</option>
-                                <option value="fey">Fey</option>
-                                <option value="giant">Giant</option>
-                                <option value="ooze">Ooze</option>
-                                <option value="plant">Plant</option>
-                                <option value="celestial">Celestial</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="button-group">
-                        <button id="generate-btn" class="btn-generate">
-                            <i class="fas fa-dice-d20"></i> Generate Encounter
-                        </button>
-                        <button id="regenerate-btn" class="btn-secondary" disabled>
-                            <i class="fas fa-redo"></i> Regenerate
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="instructions">
-                    <h3><i class="fas fa-info-circle"></i> How It Works</h3>
-                    <ul>
-                        <li>Select your party's level (1-10) and size (1-6 adventurers).</li>
-                        <li>Choose a monster theme or "Any" for a random mix.</li>
-                        <li>The generator will fetch monsters from Open5e API and create a plausible encounter.</li>
-                        <li>Monsters are selected based on party level and chosen theme.</li>
-                        <li>Click "Regenerate" to create a new encounter with the same parameters.</li>
-                    </ul>
-                </div>
-            </section>
-            
-            <section class="results-section">
-                <div id="loading-state" class="loading-state hidden">
-                    <div class="spinner"></div>
-                    <h3>Summoning monsters from the Open5e API...</h3>
-                    <p>Fetching and filtering monster data. This may take a moment.</p>
-                </div>
-                
-                <div id="error-state" class="error-state hidden">
-                    <h3><i class="fas fa-exclamation-triangle"></i> Error Summoning Monsters</h3>
-                    <p id="error-message"></p>
-                    <button id="retry-btn" class="btn-secondary">
-                        <i class="fas fa-sync-alt"></i> Try Again
-                    </button>
-                </div>
-                
-                <div id="results-display" class="hidden">
-                    <div class="summary-card">
-                        <h2><i class="fas fa-scroll"></i> Encounter Summary</h2>
-                        <div class="summary-details">
-                            <div class="summary-item">
-                                <span class="summary-label">Party Level:</span>
-                                <span id="summary-level" class="summary-value"></span>
-                            </div>
-                            <div class="summary-item">
-                                <span class="summary-label">Party Size:</span>
-                                <span id="summary-size" class="summary-value"></span>
-                            </div>
-                            <div class="summary-item">
-                                <span class="summary-label">Monster Theme:</span>
-                                <span id="summary-theme" class="summary-value"></span>
-                            </div>
-                        </div>
-                        <p id="summary-text" class="summary-text"></p>
-                    </div>
-                    
-                    <div class="encounter-header">
-                        <h2><i class="fas fa-skull-crossbones"></i> Encounter Composition</h2>
-                        <p id="monster-count"></p>
-                    </div>
-                    
-                    <div id="monsters-container" class="monsters-grid">
-                        <!-- Monster cards will be dynamically inserted here -->
-                    </div>
-                </div>
-            </section>
-        </main>
-        
-        <footer>
-            <p>D&D 5e Encounter Builder - Iteration 1 | Data provided by <a href="https://api.open5e.com/" target="_blank">Open5e API</a></p>
-            <p class="disclaimer">This tool is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards.</p>
-        </footer>
-    </div>
+			<main>
+				<section class="controls-section">
+					<div class="controls-card">
+						<h2><i class="fas fa-sliders-h"></i> Encounter Parameters</h2>
+						<div class="controls-grid">
+							<div class="control-group">
+								<label for="party-level">
+									<i class="fas fa-user-alt"></i> Party Level
+								</label>
+								<div class="input-with-info">
+									<input
+										type="number"
+										id="party-level"
+										min="1"
+										max="10"
+										value="3"
+									/>
+									<span class="info-tooltip">Level 1-10</span>
+								</div>
+							</div>
 
-    <!-- Monster Detail Modal -->
-    <div id="monster-modal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-monster-name"></h2>
-                <button id="close-modal" class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="modal-stats">
-                    <div class="stat">
-                        <span class="stat-label">Challenge Rating</span>
-                        <span id="modal-cr" class="stat-value"></span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Type</span>
-                        <span id="modal-type" class="stat-value"></span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Size</span>
-                        <span id="modal-size" class="stat-value"></span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Armour Class</span>
-                        <span id="modal-ac" class="stat-value"></span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Hit Points</span>
-                        <span id="modal-hp" class="stat-value"></span>
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <a id="open5e-link" target="_blank" class="btn-external">
-                        <i class="fas fa-external-link-alt"></i> View on Open5e
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+							<div class="control-group">
+								<label for="party-size">
+									<i class="fas fa-users"></i> Party Size
+								</label>
+								<div class="input-with-info">
+									<input
+										type="number"
+										id="party-size"
+										min="1"
+										max="6"
+										value="4"
+									/>
+									<span class="info-tooltip">1-6 adventurers</span>
+								</div>
+							</div>
 
-    <script src="app.js"></script>
-</body>
+							<div class="control-group">
+								<label for="theme">
+									<i class="fas fa-palette"></i> Monster Theme
+								</label>
+								<select id="theme">
+									<option value="any">Any</option>
+									<option value="beast">Beast</option>
+									<option value="undead">Undead</option>
+									<option value="humanoid">Humanoid</option>
+									<option value="dragon">Dragon</option>
+									<option value="fiend">Fiend</option>
+									<option value="monstrosity">Monstrosity</option>
+									<option value="aberration">Aberration</option>
+									<option value="construct">Construct</option>
+									<option value="elemental">Elemental</option>
+									<option value="fey">Fey</option>
+									<option value="giant">Giant</option>
+									<option value="ooze">Ooze</option>
+									<option value="plant">Plant</option>
+									<option value="celestial">Celestial</option>
+								</select>
+							</div>
+						</div>
+
+						<div class="button-group">
+							<button id="generate-btn" class="btn-generate">
+								<i class="fas fa-dice-d20"></i> Generate Encounter
+							</button>
+							<button id="regenerate-btn" class="btn-secondary" disabled>
+								<i class="fas fa-redo"></i> Regenerate
+							</button>
+						</div>
+					</div>
+
+					<div class="instructions">
+						<h3><i class="fas fa-info-circle"></i> How It Works</h3>
+						<ul>
+							<li>
+								Select your party's level (1-10) and size (1-6 adventurers).
+							</li>
+							<li>Choose a monster theme or "Any" for a random mix.</li>
+							<li>
+								The generator will fetch monsters from Open5e API and create a
+								plausible encounter.
+							</li>
+							<li>
+								Monsters are selected based on party level and chosen theme.
+							</li>
+							<li>
+								Click "Regenerate" to create a new encounter with the same
+								parameters.
+							</li>
+						</ul>
+					</div>
+				</section>
+
+				<!-- Results Section - Only one state visible at a time -->
+				<section class="results-section">
+					<!-- Loading State -->
+					<div id="loading-state" class="state-view">
+						<div class="spinner"></div>
+						<h3>Summoning monsters from the Open5e API...</h3>
+						<p>Fetching and filtering monster data. This may take a moment.</p>
+					</div>
+
+					<!-- Error State -->
+					<div id="error-state" class="state-view hidden">
+						<h3>
+							<i class="fas fa-exclamation-triangle"></i> Error Summoning
+							Monsters
+						</h3>
+						<p id="error-message"></p>
+						<button id="retry-btn" class="btn-secondary">
+							<i class="fas fa-sync-alt"></i> Try Again
+						</button>
+					</div>
+
+					<!-- Results State -->
+					<div id="results-display" class="state-view hidden">
+						<div class="summary-card">
+							<h2><i class="fas fa-scroll"></i> Encounter Summary</h2>
+							<div class="summary-details">
+								<div class="summary-item">
+									<span class="summary-label">Party Level:</span>
+									<span id="summary-level" class="summary-value"></span>
+								</div>
+								<div class="summary-item">
+									<span class="summary-label">Party Size:</span>
+									<span id="summary-size" class="summary-value"></span>
+								</div>
+								<div class="summary-item">
+									<span class="summary-label">Monster Theme:</span>
+									<span id="summary-theme" class="summary-value"></span>
+								</div>
+							</div>
+							<p id="summary-text" class="summary-text"></p>
+						</div>
+
+						<div class="encounter-header">
+							<h2>
+								<i class="fas fa-skull-crossbones"></i> Encounter Composition
+							</h2>
+							<p id="monster-count"></p>
+						</div>
+
+						<div id="monsters-container" class="monsters-grid">
+							<!-- Monster cards will be dynamically inserted here -->
+						</div>
+					</div>
+				</section>
+			</main>
+
+			<footer>
+				<p>
+					D&D 5e Encounter Builder - Iteration 1 | Data provided by
+					<a href="https://api.open5e.com/" target="_blank">Open5e API</a>
+				</p>
+				<p class="disclaimer">
+					This tool is unofficial Fan Content permitted under the Fan Content
+					Policy. Not approved/endorsed by Wizards.
+				</p>
+			</footer>
+		</div>
+
+		<!-- Monster Detail Modal -->
+		<div id="monster-modal" class="modal hidden">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h2 id="modal-monster-name"></h2>
+					<button id="close-modal" class="close-modal">&times;</button>
+				</div>
+				<div class="modal-body">
+					<div class="modal-stats">
+						<div class="stat">
+							<span class="stat-label">Challenge Rating</span>
+							<span id="modal-cr" class="stat-value"></span>
+						</div>
+						<div class="stat">
+							<span class="stat-label">Type</span>
+							<span id="modal-type" class="stat-value"></span>
+						</div>
+						<div class="stat">
+							<span class="stat-label">Size</span>
+							<span id="modal-size" class="stat-value"></span>
+						</div>
+						<div class="stat">
+							<span class="stat-label">Armour Class</span>
+							<span id="modal-ac" class="stat-value"></span>
+						</div>
+						<div class="stat">
+							<span class="stat-label">Hit Points</span>
+							<span id="modal-hp" class="stat-value"></span>
+						</div>
+					</div>
+					<div class="modal-actions">
+						<a id="open5e-link" target="_blank" class="btn-external">
+							<i class="fas fa-external-link-alt"></i> View on Open5e
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script src="app.js"></script>
+	</body>
 </html>

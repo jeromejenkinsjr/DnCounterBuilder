@@ -235,18 +235,38 @@ header h1 i {
 	margin-bottom: 0.5rem;
 }
 
-/* Results Section */
+/* Results Section - FIXED */
 .results-section {
 	min-height: 400px;
+	position: relative;
 }
 
-.loading-state,
-.error-state {
+.state-view {
+	width: 100%;
+}
+
+.state-view.hidden {
+	display: none !important; /* Force hide */
+	visibility: hidden !important;
+	opacity: 0 !important;
+	height: 0 !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	top: -9999px !important;
+	left: -9999px !important;
+}
+
+/* Loading State */
+#loading-state {
 	background-color: var(--card-bg);
 	border-radius: var(--border-radius);
 	padding: 3rem;
 	text-align: center;
 	box-shadow: var(--box-shadow);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 }
 
 .spinner {
@@ -268,14 +288,28 @@ header h1 i {
 	}
 }
 
-.error-state h3 {
+/* Error State */
+#error-state {
+	background-color: var(--card-bg);
+	border-radius: var(--border-radius);
+	padding: 3rem;
+	text-align: center;
+	box-shadow: var(--box-shadow);
+}
+
+#error-state h3 {
 	color: var(--accent-color);
 	margin-bottom: 1rem;
 }
 
-.error-state p {
+#error-state p {
 	margin-bottom: 1.5rem;
 	color: var(--muted-text);
+}
+
+/* Results State */
+#results-display {
+	/* No additional styles needed - it's the default state */
 }
 
 /* Summary Card */
@@ -595,5 +629,10 @@ footer a:hover {
 	.modal-header,
 	.modal-body {
 		padding: 1rem;
+	}
+
+	#loading-state,
+	#error-state {
+		padding: 2rem;
 	}
 }

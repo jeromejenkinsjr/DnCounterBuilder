@@ -65,6 +65,46 @@ const CR_RANGES = {
 	10: { min: 6, max: 8 },
 };
 
+// Single source of truth for UI state management
+function setView(state) {
+	// Reset all view states first with absolute certainty
+	dom.loadingState.classList.add("hidden");
+	dom.errorState.classList.add("hidden");
+	dom.resultsDisplay.classList.add("hidden");
+
+	// Reset button states
+	dom.generateBtn.disabled = false;
+	dom.generateBtn.innerHTML =
+		'<i class="fas fa-dice-d20"></i> Generate Encounter';
+	AppState.isFetching = false;
+
+	// Show the correct state
+	switch (state) {
+		case "loading":
+			dom.loadingState.classList.remove("hidden");
+			dom.generateBtn.disabled = true;
+			dom.generateBtn.innerHTML =
+				'<i class="fas fa-spinner fa-spin"></i> Generating...';
+			AppState.isFetching = true;
+			break;
+
+		case "error":
+			dom.errorState.classList.remove("hidden");
+			dom.regenerateBtn.disabled = false;
+			break;
+
+		case "results":
+			dom.resultsDisplay.classList.remove("hidden");
+			dom.regenerateBtn.disabled = false;
+			break;
+
+		case "idle":
+		default:
+			dom.regenerateBtn.disabled = true;
+			break;
+	}
+}
+
 // Initialise the app
 function init() {
 	// Event listeners
@@ -81,61 +121,35 @@ function init() {
 	// Set initial theme to "Any" in dropdown
 	dom.themeSelect.value = "any";
 
+	// Set initial view state - all hidden, ready for first generation
+	setView("idle");
+
 	console.log("D&D 5e Encounter Builder initialised");
-}
-
-// Show loading state
-function showLoading() {
-	dom.loadingState.classList.remove("hidden");
-	dom.errorState.classList.add("hidden");
-	dom.resultsDisplay.classList.add("hidden");
-	dom.generateBtn.disabled = true;
-	dom.generateBtn.innerHTML =
-		'<i class="fas fa-spinner fa-spin"></i> Generating...';
-	dom.regenerateBtn.disabled = true;
-	AppState.isFetching = true;
-}
-
-// Hide loading state
-function hideLoading() {
-	dom.loadingState.classList.add("hidden");
-	dom.generateBtn.disabled = false;
-	dom.generateBtn.innerHTML =
-		'<i class="fas fa-dice-d20"></i> Generate Encounter';
-	AppState.isFetching = false;
-}
-
-// Show error state
-function showError(message) {
-	hideLoading();
-	dom.errorMessage.textContent = message;
-	dom.errorState.classList.remove("hidden");
-	dom.resultsDisplay.classList.add("hidden");
-	console.error("Error:", message);
-}
-
-// Show results
-function showResults() {
-	dom.errorState.classList.add("hidden");
-	dom.resultsDisplay.classList.remove("hidden");
-	dom.regenerateBtn.disabled = false;
 }
 
 // Show modal with monster details
 function showModal(monster) {
-	dom.modalMonsterName.textContent = monster.name;
-	dom.modalCr.textContent = formatCR(monster.challenge_rating);
-	dom.modalType.textContent = monster.type || "Unknown";
-	dom.modalSize.textContent = monster.size || "Unknown";
-	dom.modalAc.textContent = monster.armor_class || "Unknown";
-	dom.modalHp.textContent = monster.hit_points || "Unknown";
+	// Use correct field names with fallbacks
+	const cr = monster.cr || monster.challenge_rating || "Unknown";
+	const type = monster.type || "Unknown";
+	const size = monster.size || "Unknown";
+	const ac = monster.armor_class || monster.armour_class || "Unknown";
+	const hp = monster.hit_points || "Unknown";
 
-	// Set Open5e link
+	dom.modalMonsterName.textContent = monster.name;
+	dom.modalCr.textContent = formatCR(cr);
+	dom.modalType.textContent = type;
+	dom.modalSize.textContent = size;
+	dom.modalAc.textContent = ac;
+	dom.modalHp.textContent = hp;
+
+	// Set Open5e link to WEBSITE (not API)
 	if (monster.slug) {
-		dom.open5eLink.href = `https://api.open5e.com/monsters/${monster.slug}`;
+		// Link to the Open5e website, not the API
+		dom.open5eLink.href = `https://open5e.com/monsters/${monster.slug}`;
 	} else {
-		// Fallback to search
-		dom.open5eLink.href = `https://api.open5e.com/monsters/?search=${encodeURIComponent(monster.name)}`;
+		// Fallback to general monsters page on website
+		dom.open5eLink.href = "https://open5e.com/monsters";
 	}
 
 	dom.monsterModal.classList.remove("hidden");
@@ -198,6 +212,18 @@ function parseCR(cr) {
 	return 0;
 }
 
+// Get monster CR with proper field fallback
+function getMonsterCR(monster) {
+	// Use cr field first, then challenge_rating as fallback
+	return monster.cr || monster.challenge_rating || 0;
+}
+
+// Get monster armor class with proper field fallback
+function getMonsterAC(monster) {
+	// Use armor_class or armour_class (both should work)
+	return monster.armor_class || monster.armour_class || "Unknown";
+}
+
 // Fetch monsters from Open5e API with pagination
 async function fetchMonsters() {
 	// Return cached data if available
@@ -230,7 +256,7 @@ async function fetchMonsters() {
 
 			// Filter out monsters without CR or with invalid CR
 			const validMonsters = data.results.filter((monster) => {
-				const cr = parseCR(monster.challenge_rating);
+				const cr = parseCR(getMonsterCR(monster));
 				return cr !== null && cr !== undefined && monster.name && monster.type;
 			});
 
@@ -274,8 +300,8 @@ function filterMonsters(monsters, partyLevel, theme) {
 	);
 
 	const filtered = monsters.filter((monster) => {
-		// Check CR range
-		const cr = parseCR(monster.challenge_rating);
+		// Check CR range using proper field fallback
+		const cr = parseCR(getMonsterCR(monster));
 		if (cr < crRange.min || cr > crRange.max) {
 			return false;
 		}
@@ -404,10 +430,16 @@ function renderEncounter(partyLevel, partySize, theme, monsters) {
 	monsters.forEach((monster, index) => {
 		const monsterCard = document.createElement("div");
 		monsterCard.className = "monster-card";
+
+		// Use correct field names with fallbacks
+		const cr = getMonsterCR(monster);
+		const ac = getMonsterAC(monster);
+		const hp = monster.hit_points || "Unknown";
+
 		monsterCard.innerHTML = `
             <div class="monster-header">
                 <h3 class="monster-name">${monster.name}</h3>
-                <span class="monster-cr">CR: ${formatCR(monster.challenge_rating)}</span>
+                <span class="monster-cr">CR: ${formatCR(cr)}</span>
             </div>
             <div class="monster-body">
                 <div class="monster-detail">
@@ -420,11 +452,11 @@ function renderEncounter(partyLevel, partySize, theme, monsters) {
                 </div>
                 <div class="monster-detail">
                     <span class="detail-label">Armour Class</span>
-                    <span class="detail-value">${monster.armor_class || "Unknown"}</span>
+                    <span class="detail-value">${ac}</span>
                 </div>
                 <div class="monster-detail">
                     <span class="detail-label">Hit Points</span>
-                    <span class="detail-value">${monster.hit_points || "Unknown"}</span>
+                    <span class="detail-value">${hp}</span>
                 </div>
                 <button class="view-details-btn" data-index="${index}">
                     <i class="fas fa-search"></i> View Details
@@ -449,7 +481,8 @@ function renderEncounter(partyLevel, partySize, theme, monsters) {
 		monsters,
 	};
 
-	showResults();
+	// Switch to results view - this will hide loading/error states
+	setView("results");
 }
 
 // Main function to generate encounter
@@ -469,7 +502,8 @@ async function generateEncounter() {
 			throw new Error("Please enter a valid party size (1-6)");
 		}
 
-		showLoading();
+		// Set loading state - this will hide all other views
+		setView("loading");
 
 		// Fetch monsters (will use cache if available)
 		let allMonsters = await fetchMonsters();
@@ -498,9 +532,10 @@ async function generateEncounter() {
 		// Render the encounter
 		renderEncounter(partyLevel, partySize, theme, selectedMonsters);
 	} catch (error) {
-		showError(error.message);
-	} finally {
-		hideLoading();
+		// Show error state - this will hide loading and results
+		dom.errorMessage.textContent = error.message;
+		console.error("Error generating encounter:", error);
+		setView("error");
 	}
 }
 
@@ -518,6 +553,9 @@ function regenerateEncounter() {
 	} = AppState.currentEncounter;
 
 	try {
+		// Set loading state
+		setView("loading");
+
 		// Get filtered monsters again (from cache)
 		const filteredMonsters = filterMonsters(
 			AppState.monsters,
@@ -543,7 +581,10 @@ function regenerateEncounter() {
 		// Render the new encounter
 		renderEncounter(partyLevel, partySize, theme, selectedMonsters);
 	} catch (error) {
-		showError(error.message);
+		// Show error state
+		dom.errorMessage.textContent = error.message;
+		console.error("Error regenerating encounter:", error);
+		setView("error");
 	}
 }
 
