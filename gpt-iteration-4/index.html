@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en-GB">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>D&D 5e Encounter Builder — Iteration 4</title>
+		<link rel="stylesheet" href="styles.css" />
+	</head>
+
+	<body>
+		<header class="site-header">
+			<div class="container">
+				<h1>
+					D&amp;D 5e Encounter Builder <span class="badge">Iteration 4</span>
+				</h1>
+				<p class="subtitle">
+					XP-balanced encounters with quality controls + a saved encounter
+					library.
+				</p>
+			</div>
+		</header>
+
+		<main class="container">
+			<section class="card">
+				<div class="top-row">
+					<div>
+						<h2>Inputs</h2>
+						<p class="small muted">
+							Iteration 4 adds saving, strict locks, and a library view
+							(localStorage).
+						</p>
+					</div>
+					<div class="actions">
+						<button id="viewLibraryBtn" type="button" class="btn">
+							View saved encounters
+						</button>
+					</div>
+				</div>
+
+				<form id="encounterForm" class="form-grid" autocomplete="off">
+					<label class="field">
+						<span class="label">Party level (1–10)</span>
+						<input
+							id="partyLevel"
+							type="number"
+							min="1"
+							max="10"
+							step="1"
+							value="5"
+							required
+						/>
+					</label>
+
+					<label class="field">
+						<span class="label">Party size (1–6)</span>
+						<input
+							id="partySize"
+							type="number"
+							min="1"
+							max="6"
+							step="1"
+							value="4"
+							required
+						/>
+					</label>
+
+					<label class="field">
+						<span class="label">Theme (monster type)</span>
+						<select id="theme">
+							<option value="any" selected>Any</option>
+							<option value="beast">Beast</option>
+							<option value="undead">Undead</option>
+							<option value="humanoid">Humanoid</option>
+							<option value="dragon">Dragon</option>
+							<option value="fiend">Fiend</option>
+							<option value="monstrosity">Monstrosity</option>
+							<option value="aberration">Aberration</option>
+							<option value="construct">Construct</option>
+							<option value="elemental">Elemental</option>
+							<option value="fey">Fey</option>
+							<option value="giant">Giant</option>
+							<option value="ooze">Ooze</option>
+							<option value="plant">Plant</option>
+							<option value="celestial">Celestial</option>
+						</select>
+					</label>
+
+					<label class="field">
+						<span class="label">Difficulty</span>
+						<select id="difficulty">
+							<option value="easy">Easy</option>
+							<option value="medium" selected>Medium</option>
+							<option value="hard">Hard</option>
+							<option value="deadly">Deadly</option>
+						</select>
+					</label>
+
+					<label class="field">
+						<span class="label">Encounter style</span>
+						<select id="style">
+							<option value="any" selected>Any</option>
+							<option value="skirmish">Skirmish (fast, mobile)</option>
+							<option value="bruisers">Bruisers (tough frontline)</option>
+							<option value="spellcasters">Spellcasters (magic-heavy)</option>
+							<option value="swarm">Swarm (more bodies, weaker)</option>
+						</select>
+					</label>
+
+					<label class="field checkbox-field">
+						<span class="label">Variety</span>
+						<div class="checkbox-row">
+							<input id="preferVariety" type="checkbox" checked />
+							<span>Prefer variety (avoid duplicates)</span>
+						</div>
+					</label>
+
+					<!-- Iteration 4: strictness toggles -->
+					<label class="field checkbox-field">
+						<span class="label">Refinement</span>
+						<div class="checkbox-col">
+							<label class="checkbox-row">
+								<input id="lockTheme" type="checkbox" />
+								<span>Lock theme (no fallback)</span>
+							</label>
+							<label class="checkbox-row">
+								<input id="lockStyle" type="checkbox" />
+								<span>Lock style (must fully match)</span>
+							</label>
+						</div>
+					</label>
+
+					<div class="actions">
+						<button id="generateBtn" type="submit" class="btn primary">
+							Generate encounter
+						</button>
+						<button id="regenBtn" type="button" class="btn" disabled>
+							Reroll
+						</button>
+						<button id="saveBtn" type="button" class="btn" disabled>
+							Save encounter
+						</button>
+					</div>
+				</form>
+			</section>
+
+			<!-- Mutually exclusive UI states -->
+			<section id="loadingState" class="card state hidden" aria-live="polite">
+				<h2>Generating…</h2>
+				<p class="muted">
+					Fetching monster data if needed, then searching for a valid encounter.
+				</p>
+				<div class="spinner" aria-hidden="true"></div>
+			</section>
+
+			<section id="errorState" class="card state hidden" aria-live="polite">
+				<h2>Something went wrong</h2>
+				<p id="errorMessage" class="error-text"></p>
+				<div class="actions">
+					<button id="retryBtn" class="btn primary" type="button">
+						Try again
+					</button>
+				</div>
+			</section>
+
+			<section id="resultsState" class="results hidden">
+				<article class="card">
+					<div class="summary-header">
+						<h2>Encounter Summary</h2>
+						<span id="resultBadge" class="pill"></span>
+					</div>
+
+					<div id="summaryGrid" class="summary-grid"></div>
+					<p id="summaryLine" class="summary-line"></p>
+				</article>
+
+				<article class="card">
+					<div class="monsters-header">
+						<h2>Monsters</h2>
+						<span class="pill" id="countPill"></span>
+					</div>
+					<ul class="monster-list" id="monsterList"></ul>
+				</article>
+			</section>
+
+			<!-- Library view (new UI state) -->
+			<section id="libraryState" class="card hidden">
+				<div class="library-header">
+					<div>
+						<h2>Saved Encounters</h2>
+						<p class="muted small">
+							Stored locally in your browser (localStorage).
+						</p>
+					</div>
+					<div class="actions">
+						<button id="backFromLibraryBtn" type="button" class="btn">
+							Back
+						</button>
+						<button id="clearLibraryBtn" type="button" class="btn danger">
+							Clear all
+						</button>
+					</div>
+				</div>
+
+				<div id="libraryEmpty" class="muted hidden">
+					No saved encounters yet. Generate one and press
+					<strong>Save encounter</strong>.
+				</div>
+
+				<div id="libraryGrid" class="library-grid"></div>
+			</section>
+
+			<!-- Details modal -->
+			<dialog id="monsterModal" class="modal">
+				<div class="modal-inner">
+					<div class="modal-header">
+						<h3 id="modalTitle">Monster</h3>
+						<button id="closeModalBtn" class="icon-btn" aria-label="Close">
+							✕
+						</button>
+					</div>
+					<div id="modalBody" class="modal-body"></div>
+					<div class="modal-footer">
+						<a
+							id="modalLink"
+							class="btn primary"
+							href="#"
+							target="_blank"
+							rel="noreferrer noopener"
+							>View on Open5e</a
+						>
+						<button id="closeModalBtn2" class="btn" type="button">Close</button>
+					</div>
+				</div>
+			</dialog>
+		</main>
+
+		<footer class="site-footer">
+			<div class="container">
+				<small class="muted"
+					>Iteration 4 adds persistence + comparison only. No new combat rules
+					or scaling logic.</small
+				>
+			</div>
+		</footer>
+
+		<script src="app.js"></script>
+	</body>
+</html>
