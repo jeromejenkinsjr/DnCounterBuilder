@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>D&amp;D 5e Encounter Builder</title>
+
+		<link rel="stylesheet" href="styles.css" />
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;500&display=swap"
+			rel="stylesheet"
+		/>
+	</head>
+
+	<body>
+		<div class="container">
+			<header>
+				<h1><i class="fas fa-dice-d20"></i> D&amp;D 5e Encounter Builder</h1>
+				<p class="subtitle">Iteration 5: Export &amp; Import Encounters</p>
+			</header>
+
+			<main>
+				<section class="controls-section">
+					<div class="controls-card">
+						<h2><i class="fas fa-sliders-h"></i> Encounter Parameters</h2>
+
+						<form id="encounterForm" class="controls-form">
+							<div class="controls-grid">
+								<div class="control-group">
+									<label for="partyLevel">
+										<i class="fas fa-user-alt"></i> Party Level
+									</label>
+									<div class="input-with-info">
+										<input
+											type="number"
+											id="partyLevel"
+											min="1"
+											max="10"
+											value="5"
+											required
+										/>
+										<span class="info-tooltip">Level 1–10</span>
+									</div>
+								</div>
+
+								<div class="control-group">
+									<label for="partySize">
+										<i class="fas fa-users"></i> Party Size
+									</label>
+									<div class="input-with-info">
+										<input
+											type="number"
+											id="partySize"
+											min="1"
+											max="6"
+											value="4"
+											required
+										/>
+										<span class="info-tooltip">1–6 adventurers</span>
+									</div>
+								</div>
+
+								<div class="control-group">
+									<label for="difficulty">
+										<i class="fas fa-shield-alt"></i> Difficulty
+									</label>
+									<select id="difficulty">
+										<option value="easy">Easy</option>
+										<option value="medium" selected>Medium</option>
+										<option value="hard">Hard</option>
+										<option value="deadly">Deadly</option>
+									</select>
+								</div>
+
+								<div class="control-group">
+									<label for="theme">
+										<i class="fas fa-palette"></i> Monster Theme
+									</label>
+									<select id="theme">
+										<option value="any">Any</option>
+										<option value="beast">Beast</option>
+										<option value="undead">Undead</option>
+										<option value="humanoid">Humanoid</option>
+										<option value="dragon">Dragon</option>
+										<option value="fiend">Fiend</option>
+										<option value="monstrosity">Monstrosity</option>
+										<option value="aberration">Aberration</option>
+										<option value="construct">Construct</option>
+										<option value="elemental">Elemental</option>
+										<option value="fey">Fey</option>
+										<option value="giant">Giant</option>
+										<option value="ooze">Ooze</option>
+										<option value="plant">Plant</option>
+										<option value="celestial">Celestial</option>
+									</select>
+								</div>
+
+								<div class="control-group">
+									<label for="style">
+										<i class="fas fa-chess-board"></i> Encounter Style
+									</label>
+									<select id="style">
+										<option value="any">Any</option>
+										<option value="bruisers">Bruisers (tough frontline)</option>
+										<option value="skirmish">Skirmish (fast, mobile)</option>
+										<option value="spellcasters">Spellcasters (magic-heavy)</option>
+										<option value="swarm">Swarm (many weak foes)</option>
+									</select>
+								</div>
+
+								<div class="control-group">
+									<label for="preferVariety" class="checkbox-label">
+										<input type="checkbox" id="preferVariety" />
+										<span class="checkbox-custom"></span>
+										<span class="checkbox-text">
+											<i class="fas fa-shapes"></i> Prefer variety (avoid duplicates)
+										</span>
+									</label>
+									<p class="control-note">
+										Reduces monster repetition when possible
+									</p>
+								</div>
+
+								<div class="control-group refinement-controls">
+									<h4><i class="fas fa-lock"></i> Refinement Constraints</h4>
+
+									<div class="refinement-group">
+										<label for="lockTheme" class="checkbox-label">
+											<input type="checkbox" id="lockTheme" />
+											<span class="checkbox-custom"></span>
+											<span class="checkbox-text">Lock Theme (no fallback)</span>
+										</label>
+										<p class="refinement-note">
+											Theme fallback disabled. Generation fails if insufficient monsters.
+										</p>
+									</div>
+
+									<div class="refinement-group">
+										<label for="lockStyle" class="checkbox-label">
+											<input type="checkbox" id="lockStyle" />
+											<span class="checkbox-custom"></span>
+											<span class="checkbox-text">Lock Style (strict matching)</span>
+										</label>
+										<p class="refinement-note">
+											Requires exact style match. No partial matches allowed.
+										</p>
+									</div>
+								</div>
+							</div>
+
+							<div class="button-group">
+								<button id="generateBtn" class="btn-generate" type="submit">
+									<i class="fas fa-dice-d20"></i> Generate Encounter
+								</button>
+
+								<button id="regenBtn" class="btn-secondary" type="button" disabled>
+									<i class="fas fa-redo"></i> Regenerate
+								</button>
+
+								<button id="viewLibraryBtn" class="btn-library" type="button">
+									<i class="fas fa-book"></i> View Library
+								</button>
+							</div>
+						</form>
+					</div>
+
+					<div class="instructions">
+						<h3><i class="fas fa-info-circle"></i> How It Works</h3>
+						<ul>
+							<li>Select party level (1–10), size (1–6), and encounter difficulty.</li>
+							<li>Choose a monster theme and optional encounter style for more coherent encounters.</li>
+							<li>Enable “Prefer variety” to reduce duplicate monsters when possible.</li>
+							<li>Use refinement constraints to enforce strict theme/style matching.</li>
+							<li>Save encounters to your local library for later reference.</li>
+							<li>Export encounters as JSON to share/backup, or import previously exported encounters.</li>
+						</ul>
+
+						<div class="style-guide">
+							<h4>Encounter Style Guide:</h4>
+							<ul>
+								<li><strong>Bruisers:</strong> Tough, high-HP monsters for frontline combat</li>
+								<li><strong>Skirmish:</strong> Fast, mobile monsters that hit and run</li>
+								<li><strong>Spellcasters:</strong> Monsters with magical abilities</li>
+								<li><strong>Swarm:</strong> Many weaker monsters that overwhelm</li>
+							</ul>
+						</div>
+
+						<div class="import-export-info">
+							<h4><i class="fas fa-file-export"></i> Import/Export Notes:</h4>
+							<ul>
+								<li>Export creates a JSON file with all encounter data</li>
+								<li>Import restores encounters exactly as saved</li>
+								<li>Imported encounters are automatically added to your library</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+
+				<section class="results-section">
+					<!-- Loading -->
+					<div id="loadingState" class="state-view hidden">
+						<div class="spinner"></div>
+						<h3>Crafting quality encounter...</h3>
+						<p>Analysing monsters and balancing encounter composition. This may take a moment.</p>
+					</div>
+
+					<!-- Error -->
+					<div id="errorState" class="state-view hidden">
+						<h3><i class="fas fa-exclamation-triangle"></i> Error generating encounter</h3>
+						<p id="errorMessage"></p>
+						<div class="error-actions">
+							<button id="retryBtn" class="btn-secondary" type="button">
+								<i class="fas fa-sync-alt"></i> Try Again
+							</button>
+						</div>
+
+						<div class="error-hint">
+							<p class="muted small">
+								Tip: If you locked theme/style, try disabling locks or switching to “Any”.
+							</p>
+						</div>
+					</div>
+
+					<!-- Results -->
+					<div id="resultsState" class="state-view hidden">
+						<div class="summary-card">
+							<div class="summary-header">
+								<h2><i class="fas fa-scroll"></i> Encounter Summary</h2>
+
+								<div class="summary-actions">
+									<div class="export-import-group">
+										<button id="exportBtn" class="btn-export" type="button">
+											<i class="fas fa-file-export"></i> Export
+										</button>
+										<button id="importBtn" class="btn-import" type="button">
+											<i class="fas fa-file-import"></i> Import
+										</button>
+									</div>
+
+									<button id="saveBtn" class="btn-save" type="button">
+										<i class="fas fa-save"></i> Save encounter
+									</button>
+								</div>
+							</div>
+
+							<div class="result-strip">
+								<span id="resultBadge" class="pill ok">—</span>
+								<span id="summaryLine" class="muted">—</span>
+							</div>
+
+							<div id="summaryGrid" class="summary-grid"></div>
+						</div>
+
+						<div class="encounter-header">
+							<h2><i class="fas fa-skull-crossbones"></i> Encounter Composition</h2>
+							<p id="countPill" class="count-pill">—</p>
+						</div>
+
+						<ul id="monsterList" class="monster-list"></ul>
+					</div>
+
+					<!-- Library -->
+					<div id="libraryState" class="state-view hidden">
+						<div class="library-shell">
+							<div class="library-header">
+								<h2><i class="fas fa-book"></i> Saved Encounter Library</h2>
+								<div class="library-actions">
+									<button id="clearLibraryBtn" class="btn-clear" type="button">
+										<i class="fas fa-trash-alt"></i> Clear All
+									</button>
+									<button id="backFromLibraryBtn" class="btn-secondary" type="button">
+										<i class="fas fa-arrow-left"></i> Back
+									</button>
+								</div>
+							</div>
+
+							<div id="libraryEmpty" class="library-empty hidden">
+								<i class="fas fa-book-open"></i>
+								<h3>No saved encounters yet</h3>
+								<p>Generate and save encounters to build your library, or import an exported encounter.</p>
+							</div>
+
+							<div id="libraryGrid" class="library-grid"></div>
+						</div>
+					</div>
+				</section>
+			</main>
+
+			<footer>
+				<p>
+					D&amp;D 5e Encounter Builder — Iteration 5 | Data provided by
+					<a href="https://api.open5e.com/" target="_blank" rel="noreferrer noopener">Open5e API</a>
+				</p>
+				<p class="disclaimer">
+					This tool is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards.
+				</p>
+				<p class="storage-note">
+					Encounters are saved locally in your browser. Use export/import to back up or share encounters.
+				</p>
+			</footer>
+		</div>
+
+		<!-- Import file input (required by app.js) -->
+		<input type="file" id="importFileInput" accept=".json,application/json" />
+
+		<!-- Toast (required by app.js) -->
+		<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+		<!-- Monster Details Modal (MUST be <dialog>) -->
+		<dialog id="monsterModal" class="modal-dialog" aria-labelledby="modalTitle">
+			<div class="modal-frame">
+				<div class="modal-header">
+					<h2 id="modalTitle"></h2>
+					<button id="closeModalBtn" class="close-modal" type="button" aria-label="Close">
+						&times;
+					</button>
+				</div>
+
+				<div id="modalBody" class="modal-body"></div>
+
+				<div class="modal-actions">
+					<a id="modalLink" class="btn-external" target="_blank" rel="noreferrer noopener">
+						<i class="fas fa-external-link-alt"></i> View on Open5e
+					</a>
+
+					<button id="closeModalBtn2" class="btn-secondary" type="button">
+						Close
+					</button>
+				</div>
+			</div>
+		</dialog>
+
+		<script src="app.js"></script>
+	</body>
+</html>
