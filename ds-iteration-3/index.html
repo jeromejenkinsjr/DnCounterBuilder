@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>D&D 5e Encounter Builder</title>
+		<link rel="stylesheet" href="styles.css" />
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;500&display=swap"
+			rel="stylesheet"
+		/>
+	</head>
+	<body>
+		<div class="container">
+			<header>
+				<h1><i class="fas fa-dice-d20"></i> D&D 5e Encounter Builder</h1>
+				<p class="subtitle">
+					Iteration 3: Quality Encounters with Role Variety
+				</p>
+			</header>
+
+			<main>
+				<section class="controls-section">
+					<div class="controls-card">
+						<h2><i class="fas fa-sliders-h"></i> Encounter Parameters</h2>
+						<div class="controls-grid">
+							<div class="control-group">
+								<label for="party-level">
+									<i class="fas fa-user-alt"></i> Party Level
+								</label>
+								<div class="input-with-info">
+									<input
+										type="number"
+										id="party-level"
+										min="1"
+										max="10"
+										value="5"
+									/>
+									<span class="info-tooltip">Level 1-10</span>
+								</div>
+							</div>
+
+							<div class="control-group">
+								<label for="party-size">
+									<i class="fas fa-users"></i> Party Size
+								</label>
+								<div class="input-with-info">
+									<input
+										type="number"
+										id="party-size"
+										min="1"
+										max="6"
+										value="4"
+									/>
+									<span class="info-tooltip">1-6 adventurers</span>
+								</div>
+							</div>
+
+							<div class="control-group">
+								<label for="difficulty">
+									<i class="fas fa-shield-alt"></i> Difficulty
+								</label>
+								<select id="difficulty">
+									<option value="easy">Easy</option>
+									<option value="medium" selected>Medium</option>
+									<option value="hard">Hard</option>
+									<option value="deadly">Deadly</option>
+								</select>
+							</div>
+
+							<div class="control-group">
+								<label for="theme">
+									<i class="fas fa-palette"></i> Monster Theme
+								</label>
+								<select id="theme">
+									<option value="any">Any</option>
+									<option value="beast">Beast</option>
+									<option value="undead">Undead</option>
+									<option value="humanoid">Humanoid</option>
+									<option value="dragon">Dragon</option>
+									<option value="fiend">Fiend</option>
+									<option value="monstrosity">Monstrosity</option>
+									<option value="aberration">Aberration</option>
+									<option value="construct">Construct</option>
+									<option value="elemental">Elemental</option>
+									<option value="fey">Fey</option>
+									<option value="giant">Giant</option>
+									<option value="ooze">Ooze</option>
+									<option value="plant">Plant</option>
+									<option value="celestial">Celestial</option>
+								</select>
+							</div>
+
+							<div class="control-group">
+								<label for="encounter-style">
+									<i class="fas fa-chess-board"></i> Encounter Style
+								</label>
+								<select id="encounter-style">
+									<option value="any">Any</option>
+									<option value="bruisers">Bruisers (tough frontline)</option>
+									<option value="skirmish">Skirmish (fast, mobile)</option>
+									<option value="spellcasters">
+										Spellcasters (magic-heavy)
+									</option>
+									<option value="swarm">Swarm (many weak foes)</option>
+								</select>
+							</div>
+
+							<div class="control-group">
+								<label for="prefer-variety" class="checkbox-label">
+									<input type="checkbox" id="prefer-variety" />
+									<span class="checkbox-custom"></span>
+									<span class="checkbox-text">
+										<i class="fas fa-shapes"></i> Prefer variety (avoid
+										duplicates)
+									</span>
+								</label>
+								<p class="control-note">
+									Reduces monster repetition when possible
+								</p>
+							</div>
+						</div>
+
+						<div class="button-group">
+							<button id="generate-btn" class="btn-generate">
+								<i class="fas fa-dice-d20"></i> Generate Encounter
+							</button>
+							<button id="regenerate-btn" class="btn-secondary" disabled>
+								<i class="fas fa-redo"></i> Regenerate
+							</button>
+						</div>
+					</div>
+
+					<div class="instructions">
+						<h3><i class="fas fa-info-circle"></i> How It Works</h3>
+						<ul>
+							<li>
+								Select party level (1-10), size (1-6), and desired encounter
+								difficulty.
+							</li>
+							<li>
+								Choose a monster theme and optional encounter style for more
+								coherent encounters.
+							</li>
+							<li>
+								Check "Prefer variety" to avoid duplicate monsters when
+								possible.
+							</li>
+							<li>
+								The generator uses XP balancing with role heuristics for higher
+								quality encounters.
+							</li>
+							<li>
+								Click "Regenerate" to create a new encounter with the same
+								parameters.
+							</li>
+						</ul>
+
+						<div class="style-guide">
+							<h4>Encounter Style Guide:</h4>
+							<ul>
+								<li>
+									<strong>Bruisers:</strong> Tough, high-HP monsters for
+									frontline combat
+								</li>
+								<li>
+									<strong>Skirmish:</strong> Fast, mobile monsters that hit and
+									run
+								</li>
+								<li>
+									<strong>Spellcasters:</strong> Monsters with magical abilities
+								</li>
+								<li>
+									<strong>Swarm:</strong> Many weaker monsters that overwhelm
+								</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+
+				<!-- Results Section - Only one state visible at a time -->
+				<section class="results-section">
+					<!-- Loading State -->
+					<div id="loading-state" class="state-view">
+						<div class="spinner"></div>
+						<h3>Crafting Quality Encounter...</h3>
+						<p>
+							Analysing monsters and balancing encounter composition. This may
+							take a moment.
+						</p>
+					</div>
+
+					<!-- Error State -->
+					<div id="error-state" class="state-view hidden">
+						<h3>
+							<i class="fas fa-exclamation-triangle"></i> Error Generating
+							Encounter
+						</h3>
+						<p id="error-message"></p>
+						<button id="retry-btn" class="btn-secondary">
+							<i class="fas fa-sync-alt"></i> Try Again
+						</button>
+					</div>
+
+					<!-- Results State -->
+					<div id="results-display" class="state-view hidden">
+						<div class="summary-card">
+							<h2><i class="fas fa-scroll"></i> Encounter Summary</h2>
+							<div class="summary-details">
+								<div class="summary-item">
+									<span class="summary-label">Party Level:</span>
+									<span id="summary-level" class="summary-value"></span>
+								</div>
+								<div class="summary-item">
+									<span class="summary-label">Party Size:</span>
+									<span id="summary-size" class="summary-value"></span>
+								</div>
+								<div class="summary-item">
+									<span class="summary-label">Theme:</span>
+									<span id="summary-theme" class="summary-value"></span>
+									<span id="theme-fallback" class="summary-note hidden"
+										>(Fell back to Any)</span
+									>
+								</div>
+								<div class="summary-item">
+									<span class="summary-label">Difficulty:</span>
+									<span id="summary-difficulty" class="summary-value"></span>
+								</div>
+								<div class="summary-item">
+									<span class="summary-label">Encounter Style:</span>
+									<span id="summary-style" class="summary-value"></span>
+								</div>
+								<div class="summary-item">
+									<span class="summary-label">Style Match:</span>
+									<span id="summary-style-match" class="summary-value"></span>
+								</div>
+								<div class="summary-item">
+									<span class="summary-label">Variety:</span>
+									<span id="summary-variety" class="summary-value"></span>
+								</div>
+							</div>
+
+							<div class="xp-summary">
+								<div class="xp-item">
+									<span class="xp-label">Monster Count:</span>
+									<span id="summary-monster-count" class="xp-value"></span>
+								</div>
+								<div class="xp-item">
+									<span class="xp-label">Base XP:</span>
+									<span id="summary-base-xp" class="xp-value"></span>
+								</div>
+								<div class="xp-item">
+									<span class="xp-label">Multiplier:</span>
+									<span id="summary-multiplier" class="xp-value"></span>
+								</div>
+								<div class="xp-item highlight">
+									<span class="xp-label">Adjusted XP:</span>
+									<span id="summary-adjusted-xp" class="xp-value"></span>
+								</div>
+								<div class="xp-item target">
+									<span class="xp-label">Target XP:</span>
+									<span id="summary-target-xp" class="xp-value"></span>
+								</div>
+							</div>
+
+							<div id="result-label" class="result-label">
+								<!-- Will be populated dynamically -->
+							</div>
+						</div>
+
+						<div class="encounter-header">
+							<h2>
+								<i class="fas fa-skull-crossbones"></i> Encounter Composition
+							</h2>
+							<p id="monster-count"></p>
+						</div>
+
+						<div id="monsters-container" class="monsters-grid">
+							<!-- Monster cards will be dynamically inserted here -->
+						</div>
+					</div>
+				</section>
+			</main>
+
+			<footer>
+				<p>
+					D&D 5e Encounter Builder - Iteration 3 | Data provided by
+					<a href="https://api.open5e.com/" target="_blank">Open5e API</a>
+				</p>
+				<p class="disclaimer">
+					This tool is unofficial Fan Content permitted under the Fan Content
+					Policy. Not approved/endorsed by Wizards.
+				</p>
+			</footer>
+		</div>
+
+		<!-- Monster Detail Modal -->
+		<div id="monster-modal" class="modal hidden">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h2 id="modal-monster-name"></h2>
+					<button id="close-modal" class="close-modal">&times;</button>
+				</div>
+				<div class="modal-body">
+					<div class="modal-stats">
+						<div class="stat">
+							<span class="stat-label">Role</span>
+							<span id="modal-role" class="stat-value"></span>
+						</div>
+						<div class="stat">
+							<span class="stat-label">Challenge Rating</span>
+							<span id="modal-cr" class="stat-value"></span>
+						</div>
+						<div class="stat">
+							<span class="stat-label">XP Value</span>
+							<span id="modal-xp" class="stat-value"></span>
+						</div>
+						<div class="stat">
+							<span class="stat-label">Type</span>
+							<span id="modal-type" class="stat-value"></span>
+						</div>
+						<div class="stat">
+							<span class="stat-label">Size</span>
+							<span id="modal-size" class="stat-value"></span>
+						</div>
+						<div class="stat">
+							<span class="stat-label">Armour Class</span>
+							<span id="modal-ac" class="stat-value"></span>
+						</div>
+						<div class="stat">
+							<span class="stat-label">Hit Points</span>
+							<span id="modal-hp" class="stat-value"></span>
+						</div>
+						<div class="stat">
+							<span class="stat-label">Speed</span>
+							<span id="modal-speed" class="stat-value"></span>
+						</div>
+					</div>
+					<div class="modal-actions">
+						<a id="open5e-link" target="_blank" class="btn-external">
+							<i class="fas fa-external-link-alt"></i> View on Open5e
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script src="app.js"></script>
+	</body>
+</html>
